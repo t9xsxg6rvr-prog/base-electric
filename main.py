@@ -52,14 +52,19 @@ class FenetrePrincipale(QMainWindow):
         # Ajout de la Barre d'outils 
         self.barre_outils = QToolBar()
         self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.barre_outils)
+
         action_main = QAction("Main", self)
         self.barre_outils.addAction(action_main)
         action_main.triggered.connect(self.action_main)
+
         action_curseur = QAction("Curseur", self)
         self.barre_outils.addAction(action_curseur)
         action_curseur.triggered.connect(self.action_curseur)
+
         action_suppression = QAction("Suppression", self)
         self.barre_outils.addAction(action_suppression)
+        action_suppression.triggered.connect(self.action_suppression)
+
         action_connexion = QAction("Connexion", self)
         self.barre_outils.addAction(action_connexion)
 
@@ -80,6 +85,7 @@ class FenetrePrincipale(QMainWindow):
             for i in range(len(self.composantes_presentes)):
                 self.composantes_presentes[i].setFlag(QGraphicsItemGroup.GraphicsItemFlag.ItemIsMovable, False)
                 self.composantes_presentes[i].setFlag(QGraphicsItemGroup.GraphicsItemFlag.ItemIsSelectable, False)
+                self.composantes_presentes[i].setEnabled(False)
             self.etat_outil = 0
     
     def action_curseur(self):
@@ -88,7 +94,17 @@ class FenetrePrincipale(QMainWindow):
             for i in range(len(self.composantes_presentes)):
                 self.composantes_presentes[i].setFlag(QGraphicsItemGroup.GraphicsItemFlag.ItemIsMovable)
                 self.composantes_presentes[i].setFlag(QGraphicsItemGroup.GraphicsItemFlag.ItemIsSelectable)
+                self.composantes_presentes[i].setEnabled(True)
             self.etat_outil = 1
+
+    def action_suppression(self):
+        if self.etat_outil != 2:
+            self.canvas.desactiver_mouvement_canvas()
+            for i in range(len(self.composantes_presentes)):
+                self.composantes_presentes[i].setFlag(QGraphicsItemGroup.GraphicsItemFlag.ItemIsMovable, False)
+                self.composantes_presentes[i].setFlag(QGraphicsItemGroup.GraphicsItemFlag.ItemIsSelectable)
+                self.composantes_presentes[i].setEnabled(True)
+            self.etat_outil = 2
 
 
 class Canvas(QGraphicsView):
@@ -98,9 +114,6 @@ class Canvas(QGraphicsView):
         self.scene_graphique = QGraphicsScene(QRectF(-1000, -1000, 2000, 2000))
         self.setScene(self.scene_graphique)
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
-
-    def get_fenetre_principale(self):
-        return self.__fenetre_principale
     
     def activer_mouvement_canvas(self):
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
@@ -131,20 +144,31 @@ class BarreComposante(BarreDroite):
 
     # Fonction d'ajout 
     def ajout_source(self):
-        resistance = Resistance()
+        resistance = Resistance(self.fenetre_principale)
         self.scene.addItem(resistance)
         self.fenetre_principale.composantes_presentes.append(resistance)
+        if self.fenetre_principale.etat_outil == 0:
+            resistance.setEnabled(False)
 
 
 class Composante(QGraphicsItemGroup):
-    def __init__(self):
+    def __init__(self, fenetre_principale):
+        self.fenetre_principale = fenetre_principale
         super().__init__()
         self.setPos(0, 0)
 
+    def mousePressEvent(self, event):
+        print("Item cliqué")
+        if self.fenetre_principale.etat_outil == 2:
+            self.fenetre_principale.canvas.scene_graphique.removeItem(self)
+            print("Suppression")
+            self.fenetre_principale.composantes_presentes.remove(self)
+        super().mousePressEvent(event)
+
 
 class Resistance(Composante):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, fenetre_principale):
+        super().__init__(fenetre_principale)
         self.rectangle = QGraphicsRectItem(QRectF(0, 0, 100, 100))
         self.rectangle.setBrush(QColor(255, 0, 0))
         self.addToGroup(self.rectangle)
