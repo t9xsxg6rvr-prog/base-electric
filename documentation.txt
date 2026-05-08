@@ -1,0 +1,22 @@
+Fenetre Principale:
+- Création de tous les widget et de leur placement dans le layout 
+- Contrôle de la liste composantes_presentes 
+- Contrôle des outils (changement en cliquant sur la barre du bas)
+
+Canvas:
+- Création du canvas en tant que tel 
+- Aucun autre contrôle 
+
+BarreComposante:
+- Possède des fonctions d'ajout des composantes 
+    - Les fonctions d'ajout contiennent toutes l'ajout àa la liste de composantes présentes 
+    - Les composantes se font placer dans le canvas activées ou pas selon l'état actuel 
+
+Composante:
+- Hérite de QGraphicsItemGroup 
+- Contrôle les clics et leur comportement
+
+À Venir: 
+GroupeComposante: 
+- Enrobe la composante en tant que tel et les bornes 
+- Permet de faire les déplacement avec une méthode sans entrer en conflit avec les clics
